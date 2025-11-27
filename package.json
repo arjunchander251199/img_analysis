@@ -1,0 +1,12 @@
+{
+  "name": "image-analyzer",
+  "version": "1.0.0",
+  "description": "Flask app for image analysis with Gemini AI",
+  "scripts": {
+    "build:css": "tailwindcss -i ./app/static/css/input.css -o ./app/static/css/output.css --minify",
+    "watch:css": "tailwindcss -i ./app/static/css/input.css -o ./app/static/css/output.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}
