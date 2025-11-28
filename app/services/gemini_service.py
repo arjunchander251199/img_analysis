@@ -14,16 +14,13 @@ class GeminiService:
         """Configure Gemini API"""
         genai.configure(api_key=current_app.config['GEMINI_API_KEY'])
         
-        # Configure generation settings with timeout
+        # Configure generation settings
         generation_config = {
             "temperature": 0.4,
             "top_p": 1,
             "top_k": 32,
             "max_output_tokens": 8192,
         }
-        
-        # Set request timeout
-        self.timeout = 60  # 60 seconds timeout
         
         self.model = genai.GenerativeModel(
             current_app.config['GEMINI_MODEL'],
@@ -134,11 +131,8 @@ Extract the essential information now with maximum precision and conciseness:"""
                 
                 prompt = self._get_analysis_prompt()
                 
-                # Generate content with timeout handling
-                response = self.model.generate_content(
-                    [prompt, img],
-                    request_options={"timeout": self.timeout}
-                )
+                # Generate content (timeout handled by server/gunicorn)
+                response = self.model.generate_content([prompt, img])
                 
                 if not response or not response.text:
                     raise Exception("Empty response from Gemini API")
