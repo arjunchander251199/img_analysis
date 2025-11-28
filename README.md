@@ -131,6 +131,44 @@ Edit `config.py` to customize:
 - **Image Processing**: Pillow
 - **Architecture**: Blueprint pattern, modular design
 
+## Running in Production
+
+For production deployment, use Gunicorn with the provided configuration:
+
+```bash
+gunicorn -c gunicorn_config.py run:app
+```
+
+Or simply:
+
+```bash
+gunicorn run:app --bind 0.0.0.0:5000 --timeout 120 --workers 4
+```
+
+## Troubleshooting
+
+### 502 Error / Empty JSON Response
+
+If you encounter a 502 error or "Failed to execute 'json' on 'Response'" error:
+
+1. **Check API Key**: Ensure your Gemini API key is valid and has quota remaining
+2. **Timeout Issues**: Large or complex images may timeout. The app now has:
+   - 60-second timeout on Gemini API requests
+   - 120-second timeout on Gunicorn workers
+   - Automatic retry with exponential backoff
+3. **Image Size**: Try resizing images to under 1536px for faster processing
+4. **Check Logs**: Look at the terminal/console for detailed error messages
+
+### Common Error Codes
+
+- **429**: API quota exceeded - wait and try again
+- **504**: Request timeout - image is too complex or API is slow
+- **500**: General server error - check logs for details
+
+### Debug Mode
+
+The app runs in debug mode by default with `python run.py`. For production, disable debug mode or use Gunicorn.
+
 ## Security Notes
 
 - API key is hardcoded for development. Use environment variables in production.

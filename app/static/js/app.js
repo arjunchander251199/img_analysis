@@ -148,12 +148,18 @@ async function analyzeFile() {
       body: formData,
     });
 
-    const uploadData = await uploadResponse.json();
-
     if (!uploadResponse.ok) {
-      throw new Error(uploadData.error || "Upload failed");
+      let errorMessage = "Upload failed";
+      try {
+        const uploadData = await uploadResponse.json();
+        errorMessage = uploadData.error || errorMessage;
+      } catch (e) {
+        errorMessage = `Server error (${uploadResponse.status})`;
+      }
+      throw new Error(errorMessage);
     }
 
+    const uploadData = await uploadResponse.json();
     currentFilename = uploadData.filename;
 
     // Show loading section
@@ -172,12 +178,18 @@ async function analyzeFile() {
       body: JSON.stringify({ filename: currentFilename }),
     });
 
-    const analyzeData = await analyzeResponse.json();
-
     if (!analyzeResponse.ok) {
-      throw new Error(analyzeData.error || "Analysis failed");
+      let errorMessage = "Analysis failed";
+      try {
+        const analyzeData = await analyzeResponse.json();
+        errorMessage = analyzeData.error || errorMessage;
+      } catch (e) {
+        errorMessage = `Server error (${analyzeResponse.status}). The analysis may have timed out or encountered an issue.`;
+      }
+      throw new Error(errorMessage);
     }
 
+    const analyzeData = await analyzeResponse.json();
     extractedData = analyzeData.result;
 
     // Show results

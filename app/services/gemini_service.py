@@ -22,6 +22,9 @@ class GeminiService:
             "max_output_tokens": 8192,
         }
         
+        # Set request timeout
+        self.timeout = 60  # 60 seconds timeout
+        
         self.model = genai.GenerativeModel(
             current_app.config['GEMINI_MODEL'],
             generation_config=generation_config
@@ -117,8 +120,8 @@ Extract the essential information now with maximum precision and conciseness:"""
 
     def analyze_image(self, image_path):
         """Analyze a single image with Gemini with retry logic"""
-        max_retries = 3
-        retry_delay = 2
+        max_retries = 2
+        retry_delay = 3
         
         for attempt in range(max_retries):
             try:
@@ -131,8 +134,15 @@ Extract the essential information now with maximum precision and conciseness:"""
                 
                 prompt = self._get_analysis_prompt()
                 
-                # Generate content without request_options
-                response = self.model.generate_content([prompt, img])
+                # Generate content with timeout handling
+                response = self.model.generate_content(
+                    [prompt, img],
+                    request_options={"timeout": self.timeout}
+                )
+                
+                if not response or not response.text:
+                    raise Exception("Empty response from Gemini API")
+                    
                 return response.text
                 
             except Exception as e:

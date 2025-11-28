@@ -56,17 +56,31 @@ def analyze_file():
         # Initialize Gemini service
         gemini_service = GeminiService()
         
-        # Analyze file
+        # Analyze file with timeout handling
         result = gemini_service.analyze_file(filepath)
+        
+        if not result or 'content' not in result:
+            return jsonify({'error': 'No content extracted from image'}), 500
         
         return jsonify({
             'success': True,
             'result': result
         }), 200
         
-    except Exception as e:
+    except TimeoutError:
         traceback.print_exc()
-        return jsonify({'error': f'Analysis failed: {str(e)}'}), 500
+        return jsonify({'error': 'Analysis timed out. Please try again with a smaller or clearer image.'}), 504
+    except Exception as e:
+        error_msg = str(e)
+        traceback.print_exc()
+        
+        # Return appropriate status codes
+        if 'quota' in error_msg.lower() or '429' in error_msg:
+            return jsonify({'error': 'API quota exceeded. Please try again later.'}), 429
+        elif 'timeout' in error_msg.lower() or 'deadline' in error_msg.lower():
+            return jsonify({'error': 'Analysis timed out. Please try again.'}), 504
+        else:
+            return jsonify({'error': f'Analysis failed: {error_msg}'}), 500
 
 @api_bp.route('/delete/<filename>', methods=['DELETE'])
 def delete_file(filename):
